@@ -6,30 +6,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时光宝盒</title>
 
-  <!-- 主题色（用于浏览器地址栏等） -->
+  <!-- 主题色 -->
   <meta name="theme-color" content="#6C63FF" />
 
-  <!-- iOS Web App 设置（保持你原有体验） -->
+  <!-- iOS Web App 设置 -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="时光宝盒" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- PWA manifest（必须是 <link>；GitHub Pages 项目页用绝对路径） -->
-  <link rel="manifest" href="/-GemiOS 主屏幕图标（必须是 <link>；使用 180x180 的 apple-touch-icon.png） -->
-  <link rel="pple-touch-icon.png
+  <!-- PWA manifest（GitHub Pages 项目页用绝对路径） -->
+  /-Gemini-/manifest.json
 
-  <!-- Tailwind（CDN 必须使用 <script> 标签引入；可选增强样式） -->
+  <!-- iOS 主屏幕图标（使用 180x180 的 PNG；改名为 v2 以绕过 iOS 缓存） -->
+  /-Gemini-/apple-touch-icon.v2.png
+
+  <!-- Tailwind（CDN，必须用 <script> 引入） -->
   https://cdn.tailwindcss.com</script>
 
-  <!-- 离线基础样式（即使 CDN 加载不到也可阅读） -->
+  <!-- 离线基础样式（即使 CDN 不可达也能阅读） -->
   <style>
-    html { font-size: 16px; }      /* 基础字体大小 */
-    body { line-height: 1.7; }     /* 行距更舒适 */
-    textarea, input, select { font-size: 16px; } /* 解决 iOS 输入时缩放 */
+    html { font-size: 16px; }
+    body { line-height: 1.7; }
+    textarea, input, select { font-size: 16px; }
     button { font-size: 15px; padding: 12px 16px; border-radius: 12px; }
     #notesList .card, .card { padding: 18px; border-radius: 18px; }
     .header h1 { font-size: 18px; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: #f8fafc; margin: 0; padding: 0; color: #334155;
@@ -45,6 +46,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
+
 <body class="bg-slate-50">
   <div id="app">
     <!-- 顶部 -->
