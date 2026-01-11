@@ -4,15 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时光宝盒</title>
+
+  <!-- iOS PWA 样式与标题 -->
   <meta name="theme-color" content="#6C63FF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="时光宝盒" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+  <!-- 关键：iOS 主屏图标（强缓存，建议更换版本名） -->
+  <link rel="appletouch-icon.v3.png
+  /-Gemini-/apple-touch-icon.v3.png
+
+  <!-- manifest（iOS 不读图标，但保留无妨） -->
   /-Gemini-/manifest.json
-  /-Gemini-/apple-touch-icon.v2.png
+
+  <!-- 正确的 Tailwind 引入（如需） -->
   https://cdn.tailwindcss.com</script>
 
+  <!-- 你的内联样式，单独的 <style> 块，不要和 <link> 混在一行 -->
   <style>
     html { font-size: 16px; }
     body { line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #334155; }
