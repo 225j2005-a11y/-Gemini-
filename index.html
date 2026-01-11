@@ -6,24 +6,28 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>时光宝盒</title>
 
-  <!-- PWA 配置 -->
+  <!-- PWA 配置（必须是有效的 <link> 标签，不能是普通文字） -->
   manifest.json
   <meta name="theme-color" content="#6C63FF">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="时光宝盒">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- iOS 主屏幕图标 -->
   icons/icon-192.png
 
   <!-- 离线基础样式（即使 CDN 加载不到也可阅读） -->
   <style>
-    html { font-size: 16px; }           /* 基础字体大小 */
-    body { line-height: 1.7; }          /* 行距更舒适 */
-    textarea, input, select {font-size: 16px;                  /* 解决 iOS 缩放问题 */}
-    button {font-size: 15px; padding: 12px 16px; border-radius: 12px;}
-    #notesList .card, .card {padding: 18px; border-radius: 18px;}
+    html { font-size: 16px; }      /* 基础字体大小 */
+    body { line-height: 1.7; }     /* 行距更舒适 */
+    textarea, input, select { font-size: 16px; } /* 解决 iOS 输入时缩放 */
+    button { font-size: 15px; padding: 12px 16px; border-radius: 12px; }
+    #notesList .card, .card { padding: 18px; border-radius: 18px; }
     .header h1 { font-size: 18px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-           background: #f8fafc; margin: 0; padding: 0; color: #334155; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc; margin: 0; padding: 0; color: #334155;
+    }
     #app { max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid #6C63FF; }
@@ -32,10 +36,10 @@
     textarea, input, select { width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 10px;
                               border: 1px solid #e2e8f0; border-radius: 8px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }    
- </style>
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 
-  <!-- Tailwind（在线，可增强视觉；离线时仍有上面基础样式） -->
+  <!-- Tailwind（在线，可增强视觉；你之前写成了纯文字，这里改为正确的 <script> 标签） -->
   https://cdn.tailwindcss.com</script>
 </head>
 <body class="bg-slate-50">
@@ -61,14 +65,15 @@
       <button onclick="filterNotes('个人随笔')" class="px-4 py-1 bg-white border rounded-full text-sm">随笔</button>
     </div>
 
-<div class="card">
-  <p class="text-slate-600">把聊天记录粘贴到下面，点击“保存”。会保存在手机本地。</p>
-  <textarea id="quickPaste" placeholder="在这里粘贴聊天记录..." rows="5"></textarea>
-  <div style="display:flex; gap:8px; margin-top:8px;">
-    <button class="btn btn-primary" onclick="quickSave()">保存</button>
-    <button class="btn" onclick="document.getElementById('quickPaste').value=''">清空</button>
-  </div>
-</div>
+    <!-- 快速粘贴保存 -->
+    <div class="card">
+      <p class="text-slate-600">把聊天记录粘贴到下面，点击“保存”。会保存在手机本地。</p>
+      <textarea id="quickPaste" placeholder="在这里粘贴聊天记录..." rows="5"></textarea>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary" onclick="quickSave()">保存</button>
+        <button class="btn" onclick="document.getElementById('quickPaste').value=''">清空</button>
+      </div>
+    </div>
 
     <!-- 列表 -->
     <div id="notesList" class="p-2"></div>
@@ -102,22 +107,22 @@
       return String(str).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
     }
 
-    // -------- 初始化数据 --------
-   function initData() {
-  let notes = [];
-  try { notes = JSON.parse(localStorage.getItem('jia_notes_v4')) || []; } catch { notes = []; }
-  if (!notes.length) {
-    notes = [{
-      id: Date.now(),
-      title: "欢迎使用时光宝盒",
-      category: "心理慰藉",
-      content: "这是你的离线安全宝盒。所有数据都保存在你的手机浏览器里，不会上传到任何地方。",
-      date: new Date().toLocaleDateString()
-    }];
-    localStorage.setItem('jia_notes_v4', JSON.stringify(notes));
-  }
-  render();
-}
+    // -------- 初始化数据（为空时写入欢迎记录）--------
+    function initData() {
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      if (!notes.length) {
+        notes = [{
+          id: Date.now(),
+          title: "欢迎使用时光宝盒",
+          category: "心理慰藉",
+          content: "这是你的离线安全宝盒。所有数据都保存在你的手机浏览器里（localStorage），不会上传到任何地方。",
+          date: new Date().toLocaleDateString()
+        }];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      }
+      render();
+    }
 
     // -------- 渲染 --------
     function render() {
@@ -246,6 +251,19 @@
       input.click();
     };
 
+    // -------- 快速粘贴保存 --------
+    function quickSave() {
+      const val = document.getElementById('quickPaste').value.trim();
+      if (!val) { alert('请输入或粘贴内容'); return; }
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      notes.unshift({ id: Date.now(), title: '碎碎念', category: '个人随笔', content: val, date: new Date().toLocaleDateString() });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      document.getElementById('quickPaste').value = '';
+      render();
+      alert('已保存到本地');
+    }
+
     // -------- 注册 Service Worker --------
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -254,21 +272,9 @@
           .catch(err => console.log('SW registration failed', err));
       });
     }
-    
- function quickSave() {
-   const val = document.getElementById('quickPaste').value.trim();
-    if (!val) { alert('请输入或粘贴内容'); return; }
-    let notes = [];
-    try { notes = JSON.parse(localStorage.getItem('jia_notes_v4')) || []; } catch { notes = []; }
-    notes.unshift({ id: Date.now(), title: '碎碎念', category: '个人随笔', content: val, date: new Date().toLocaleDateString() });
-    localStorage.setItem('jia_notes_v4', JSON.stringify(notes));
-    document.getElementById('quickPaste').value = '';
-    render();
-    alert('已保存到本地');
-  }
 
-// 启动
-initData(); 
+    // 启动（一定要有这行，且放在所有函数定义之后）
+    initData();
   </script>
 </body>
 </html>
