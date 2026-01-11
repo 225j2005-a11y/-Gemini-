@@ -6,18 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>时光宝盒</title>
 
-  <!-- iOS PWA 设置 -->
+  <!-- iOS / PWA 设定 -->
   <meta name="theme-color" content="#6C63FF" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="时光宝盒" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-<link rel="apple-touchicon.v3.png
-<link rel="apple-touch-icon" href="/-Gemini-/apple-touch-
-  icon.v3.png"="ailwindcss.com</script>
-``
+  <!-- Apple Touch Icon（iOS 主屏图标） -->
+  /-Gemini-/apple-touch-icon.v3.png
+  /-Gemini-/apple-touch-icon.v3.png
 
-  <!-- 你的样式 -->
+  <!-- Web Manifest（保留） -->
+  /-Gemini-/manifest.json
+
+  <!-- Tailwind（CDN 引入） -->
+  https://cdn.tailwindcss.com</script>
+
+  <!-- 样式 -->
   <style>
     html { font-size: 16px; }
     body { line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #334155; }
@@ -33,7 +38,7 @@
 
 <body class="bg-slate-50">
   <div id="app">
-    <!-- 你原有的 HTML 内容可以逐步加回来；先用这一版验证图标 -->
+    <!-- 顶部 -->
     <header class="sticky top-0 z-50 p-4 bg-white/80 backdrop-blur-md border-b flex justify-between items-center">
       <h1 class="text-xl font-bold text-slate-800">时光宝盒 ✨</h1>
       <div class="flex gap-2">
@@ -43,17 +48,217 @@
       </div>
     </header>
 
+    <!-- 过滤器 -->
+    <div class="flex gap-2 overflow-x-auto p-4 no-scrollbar">
+      <button onclick="filterNotes('全部')" class="px-4 py-1 bg-white border rounded-full text-sm">全部</button>
+      <button onclick="filterNotes('心理慰藉')" class="px-4 py-1 bg-white border rounded-full text-sm">心理</button>
+      <button onclick="filterNotes('就职建议')" class="px-4 py-1 bg-white border rounded-full text-sm">就职</button>
+      <button onclick="filterNotes('学校生活')" class="px-4 py-1 bg-white border rounded-full text-sm">学校</button>
+      <button onclick="filterNotes('个人随笔')" class="px-4 py-1 bg-white border rounded-full text-sm">随笔</button>
+    </div>
+
+    <!-- 快速粘贴保存 -->
     <div class="card">
-      <p class="text-slate-600">这是用于验证 Apple Touch Icon 的极简页面。</p>
+      <p class="text-slate-600">把聊天记录粘贴到下面，点击“保存”。会保存在手机本地。</p>
+      <textarea id="quickPaste" placeholder="在这里粘贴聊天记录..." rows="5"></textarea>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn btn-primary" onclick="quickSave()">保存</button>
+        <button class="btn" onclick="document.getElementById('quickPaste').value=''">清空</button>
+      </div>
+    </div>
+
+    <!-- 列表 -->
+    <div id="notesList" class="p-2"></div>
+  </div>
+
+  <!-- 弹窗 -->
+  <div id="noteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+      <h2 class="text-xl font-bold mb-4">记录此刻</h2>
+      <input type="text" id="noteTitle" placeholder="标题" />
+      <select id="noteCategory">
+        <option value="心理慰藉">心理慰藉</option>
+        <option value="就职建议">就职建议</option>
+        <option value="学校生活">学校生活</option>
+        <option value="个人随笔">个人随笔</option>
+      </select>
+      <textarea id="noteContent" rows="5" placeholder="写下你想说的话..."></textarea>
+      <div class="flex gap-2">
+        <button onclick="closeModal()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">取消</button>
+        <button onclick="addNote()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">保存</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // 保留你需要的脚本，这里只留最小壳，避免把 <script> 当文本
-    function openModal(){ alert('demo'); }
-    document.getElementById('exportBtn').onclick = () => alert('demo');
-    document.getElementById('importBtn').onclick = () => alert('demo');
+    const STORAGE_KEY = 'jia_notes_v4';
+    let currentFilter = '全部';
+
+    // 安全转义
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+    }
+
+    // 初始化数据
+    function initData() {
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      if (!notes.length) {
+        notes = [{
+          id: Date.now(),
+          title: "欢迎使用时光宝盒",
+          category: "心理慰藉",
+          content: "这是你的离线安全宝盒。所有数据都保存在你的手机浏览器里（localStorage），不会上传到任何地方。",
+          date: new Date().toLocaleDateString()
+        }];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      }
+      render();
+    }
+
+    // 渲染
+    function render() {
+      const list = document.getElementById('notesList');
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      const filtered = currentFilter === '全部' ? notes : notes.filter(n => n.category === currentFilter);
+
+      if (!filtered.length) {
+        list.innerHTML = `<div class="card">暂无记录。点击右上角“记笔记”添加。</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(n => `
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-indigo-500 mb-4">
+          <div class="flex justify-between text-[10px] text-slate-400 mb-2">
+            <span>${escapeHtml(n.category)}</span>
+            <span>${escapeHtml(n.date)}</span>
+          </div>
+          <h3 class="font-bold text-slate-800 mb-2">${escapeHtml(n.title)}</h3>
+          <p class="text-sm text-slate-600 whitespace-pre-wrap">${escapeHtml(n.content)}</p>
+          <div class="flex justify-end mt-4 gap-3">
+            <button onclick="copyNote(${n.id})" class="text-indigo-600 text-xs">复制</button>
+            <button onclick="editNote(${n.id})" class="text-slate-600 text-xs">编辑</button>
+            <button onclick="deleteNote(${n.id})" class="text-red-400 text-xs">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 过滤
+    function filterNotes(cat) { currentFilter = cat; render(); }
+
+    // 弹窗
+    function openModal() { document.getElementById('noteModal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('noteModal').classList.add('hidden'); }
+
+    // 添加
+    function addNote() {
+      const title = document.getElementById('noteTitle').value || '碎碎念';
+      const content = document.getElementById('noteContent').value;
+      const category = document.getElementById('noteCategory').value;
+      if (!content.trim()) return;
+
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      notes.unshift({ id: Date.now(), title, content, category, date: new Date().toLocaleDateString() });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+
+      closeModal();
+      render();
+      document.getElementById('noteTitle').value = '';
+      document.getElementById('noteContent').value = '';
+    }
+
+    // 编辑
+    function editNote(id) {
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      const idx = notes.findIndex(n => n.id === id);
+      if (idx < 0) return;
+      const newText = prompt('编辑内容：', notes[idx].content);
+      if (newText != null) {
+        notes[idx].content = newText;
+        notes[idx].date = new Date().toLocaleDateString();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+        render();
+      }
+    }
+
+    // 删除
+    function deleteNote(id) {
+      if (!confirm('确定删除吗？')) return;
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      notes = notes.filter(n => n.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      render();
+    }
+
+    // 复制
+    function copyNote(id) {
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      const item = notes.find(n => n.id === id);
+      if (!item) return;
+
+      const text = `${item.title}\n${item.category} · ${item.date}\n\n${item.content}`;
+      navigator.clipboard?.writeText(text).then(
+        () => alert('已复制到剪贴板'),
+        () => { // iOS 兜底
+          const t = document.createElement('textarea'); t.value = text;
+          document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+          alert('已尝试复制，请检查剪贴板');
+        }
+      );
+    }
+
+    // 导出
+    document.getElementById('exportBtn').onclick = () => {
+      let notes = [];
+      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
+      const data = JSON.stringify(notes, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = '时光宝盒备份.json'; a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    // 导入
+    document.getElementById('importBtn').onclick = () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = async () => {
+        const file = input.files[0]; if (!file) return;
+        const text = await file.text();
+        try {
+          const arr = JSON.parse(text);
+          if (Array.isArray(arr)) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+            render();
+            alert('导入成功');
+          } else {
+            alert('文件格式不正确');
+          }
+        } catch {
+          alert('解析失败，请确认是导出的 JSON 文件');
+        }
+      };
+      input.click();
+    };
+
+    // 注册 Service Worker（项目页用绝对路径）
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/-Gemini-/sw.js')
+          .then(() => console.log('SW registered'))
+          .catch(err => console.log('SW registration failed', err));
+      });
+    }
+
+    // 启动
+    initData();
   </script>
 </body>
 </html>
-``
