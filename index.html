@@ -12,15 +12,14 @@
   <meta name="apple-mobile-web-app-title" content="时光宝盒" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- Apple Touch Icon（iOS 主屏图标） -->
-  /-Gemini-/apple-touch-icon.v3.png
-  /-Gemini-/apple-touch-icon.v3.png
-
-  <!-- Web Manifest（保留） -->
-  /-Gemini-/manifest.json
-
-  <!-- Tailwind（CDN 引入） -->
-  https://cdn.tailwindcss.com</script>
+  <!-- 1. 苹果专用图标：必须是 rel="apple-touch-icon" -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.v3.png">
+    
+    <!-- 2. 苹果 Web App 模式：必须是 yes -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <!-- 3. Manifest 文件：必须路径正确 -->
+    <link rel="manifest" href="manifest.json">
 
   <!-- 样式 -->
   <style>
