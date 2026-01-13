@@ -1,263 +1,177 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>时光宝盒</title>
-
-  <!-- iOS / PWA 设定 -->
-  <meta name="theme-color" content="#6C63FF" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="时光宝盒" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-  <!-- 1. 苹果专用图标：必须是 rel="apple-touch-icon" -->
-    <link rel="apple-touch-icon" href="apple-touch-icon.v3.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- 2. 苹果 Web App 模式：必须是 yes -->
+    <!-- 苹果专用 PWA 设定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="时光宝盒">
     
-    <!-- 3. Manifest 文件：必须路径正确 -->
+    <!-- 图标路径：请确保仓库中存在 apple-touch-icon.v3.png -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.v3.png">
+    <link rel="icon" type="image/png" href="apple-touch-icon.v3.png">
+    
+    <!-- Manifest 配置 -->
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6C63FF">
 
-  <!-- 样式 -->
-  <style>
-    html { font-size: 16px; }
-    body { line-height: 1.7; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; color: #334155; }
-    #app { max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
-    .card { background: #fff; border-radius: 16px; padding: 16px; margin: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 5px solid #6C63FF; }
-    .btn { border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-weight: bold; }
-    .btn-primary { background: #6C63FF; color: #fff; }
-    textarea, input, select { width: 100%; box-sizing: border-box; padding: 12px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 16px; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+    <title>贾同学的时光宝盒</title>
+
+    <!-- 外部库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', -apple-system, sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .note-card {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
+<body class="bg-slate-50 min-h-screen pb-24 text-slate-900">
 
-<body class="bg-slate-50">
-  <div id="app">
-    <!-- 顶部 -->
-    <header class="sticky top-0 z-50 p-4 bg-white/80 backdrop-blur-md border-b flex justify-between items-center">
-      <h1 class="text-xl font-bold text-slate-800">时光宝盒 ✨</h1>
-      <div class="flex gap-2">
-        <button onclick="openModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg active:scale-95 transition">记笔记</button>
-        <button id="exportBtn" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl">导出</button>
-        <button id="importBtn" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl">导入</button>
-      </div>
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 p-4 glass-card mb-4 shadow-sm">
+        <div class="flex justify-between items-center max-w-2xl mx-auto">
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                时光宝盒 ✨
+            </h1>
+            <div class="flex gap-2">
+                <!-- 导出备份按钮 -->
+                <button onclick="exportData()" class="bg-slate-100 text-slate-500 w-10 h-10 rounded-2xl flex items-center justify-center active:scale-90 transition shadow-inner">
+                    <i class="fas fa-file-export text-sm"></i>
+                </button>
+                <!-- 添加笔记按钮 -->
+                <button onclick="openModal()" class="bg-indigo-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
     </header>
 
-    <!-- 过滤器 -->
-    <div class="flex gap-2 overflow-x-auto p-4 no-scrollbar">
-      <button onclick="filterNotes('全部')" class="px-4 py-1 bg-white border rounded-full text-sm">全部</button>
-      <button onclick="filterNotes('心理慰藉')" class="px-4 py-1 bg-white border rounded-full text-sm">心理</button>
-      <button onclick="filterNotes('就职建议')" class="px-4 py-1 bg-white border rounded-full text-sm">就职</button>
-      <button onclick="filterNotes('学校生活')" class="px-4 py-1 bg-white border rounded-full text-sm">学校</button>
-      <button onclick="filterNotes('个人随笔')" class="px-4 py-1 bg-white border rounded-full text-sm">随笔</button>
-    </div>
+    <!-- 主内容区 -->
+    <main class="max-w-2xl mx-auto px-4">
+        <div id="notesContainer" class="space-y-4"></div>
+    </main>
 
-    <!-- 快速粘贴保存 -->
-    <div class="card">
-      <p class="text-slate-600">把聊天记录粘贴到下面，点击“保存”。会保存在手机本地。</p>
-      <textarea id="quickPaste" placeholder="在这里粘贴聊天记录..." rows="5"></textarea>
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <button class="btn btn-primary" onclick="quickSave()">保存</button>
-        <button class="btn" onclick="document.getElementById('quickPaste').value=''">清空</button>
-      </div>
-    </div>
-
-    <!-- 列表 -->
-    <div id="notesList" class="p-2"></div>
-  </div>
-
-  <!-- 弹窗 -->
-  <div id="noteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
-      <h2 class="text-xl font-bold mb-4">记录此刻</h2>
-      <input type="text" id="noteTitle" placeholder="标题" />
-      <select id="noteCategory">
-        <option value="心理慰藉">心理慰藉</option>
-        <option value="就职建议">就职建议</option>
-        <option value="学校生活">学校生活</option>
-        <option value="个人随笔">个人随笔</option>
-      </select>
-      <textarea id="noteContent" rows="5" placeholder="写下你想说的话..."></textarea>
-      <div class="flex gap-2">
-        <button onclick="closeModal()" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">取消</button>
-        <button onclick="addNote()" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold">保存</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const STORAGE_KEY = 'jia_notes_v4';
-    let currentFilter = '全部';
-
-    // 安全转义
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-    }
-
-    // 初始化数据
-    function initData() {
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      if (!notes.length) {
-        notes = [{
-          id: Date.now(),
-          title: "欢迎使用时光宝盒",
-          category: "心理慰藉",
-          content: "这是你的离线安全宝盒。所有数据都保存在你的手机浏览器里（localStorage），不会上传到任何地方。",
-          date: new Date().toLocaleDateString()
-        }];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      }
-      render();
-    }
-
-    // 渲染
-    function render() {
-      const list = document.getElementById('notesList');
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      const filtered = currentFilter === '全部' ? notes : notes.filter(n => n.category === currentFilter);
-
-      if (!filtered.length) {
-        list.innerHTML = `<div class="card">暂无记录。点击右上角“记笔记”添加。</div>`;
-        return;
-      }
-
-      list.innerHTML = filtered.map(n => `
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-indigo-500 mb-4">
-          <div class="flex justify-between text-[10px] text-slate-400 mb-2">
-            <span>${escapeHtml(n.category)}</span>
-            <span>${escapeHtml(n.date)}</span>
-          </div>
-          <h3 class="font-bold text-slate-800 mb-2">${escapeHtml(n.title)}</h3>
-          <p class="text-sm text-slate-600 whitespace-pre-wrap">${escapeHtml(n.content)}</p>
-          <div class="flex justify-end mt-4 gap-3">
-            <button onclick="copyNote(${n.id})" class="text-indigo-600 text-xs">复制</button>
-            <button onclick="editNote(${n.id})" class="text-slate-600 text-xs">编辑</button>
-            <button onclick="deleteNote(${n.id})" class="text-red-400 text-xs">删除</button>
-          </div>
+    <!-- 新增笔记模态框 -->
+    <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl">
+            <h2 class="text-xl font-bold mb-4 text-slate-800">记录此刻</h2>
+            <input type="text" id="noteTitle" placeholder="给它起个标题..." class="w-full p-4 mb-3 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-indigo-100 transition">
+            <textarea id="noteContent" rows="6" placeholder="你想对未来的自己说什么？" class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-indigo-100 transition"></textarea>
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 rounded-2xl font-bold text-slate-500 active:bg-slate-200 transition">取消</button>
+                <button onclick="saveNote()" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-bold text-white active:bg-indigo-700 shadow-md transition">保存</button>
+            </div>
         </div>
-      `).join('');
-    }
+    </div>
 
-    // 过滤
-    function filterNotes(cat) { currentFilter = cat; render(); }
+    <!-- 备份导出模态框 -->
+    <div id="exportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[110] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl">
+            <h2 class="text-xl font-bold mb-2 text-slate-800">数据备份</h2>
+            <p class="text-xs text-slate-400 mb-4 px-1">复制下方内容，即可在其他设备恢复。</p>
+            <textarea id="exportArea" readonly class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none text-[10px] font-mono h-48 border border-slate-100"></textarea>
+            <button onclick="closeExport()" class="w-full py-4 bg-indigo-600 rounded-2xl font-bold text-white transition">完成复制</button>
+        </div>
+    </div>
 
-    // 弹窗
-    function openModal() { document.getElementById('noteModal').classList.remove('hidden'); }
-    function closeModal() { document.getElementById('noteModal').classList.add('hidden'); }
+    <script>
+        const STORAGE_KEY = 'jia_notes_v4';
+        let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-    // 添加
-    function addNote() {
-      const title = document.getElementById('noteTitle').value || '碎碎念';
-      const content = document.getElementById('noteContent').value;
-      const category = document.getElementById('noteCategory').value;
-      if (!content.trim()) return;
-
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      notes.unshift({ id: Date.now(), title, content, category, date: new Date().toLocaleDateString() });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-
-      closeModal();
-      render();
-      document.getElementById('noteTitle').value = '';
-      document.getElementById('noteContent').value = '';
-    }
-
-    // 编辑
-    function editNote(id) {
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      const idx = notes.findIndex(n => n.id === id);
-      if (idx < 0) return;
-      const newText = prompt('编辑内容：', notes[idx].content);
-      if (newText != null) {
-        notes[idx].content = newText;
-        notes[idx].date = new Date().toLocaleDateString();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        render();
-      }
-    }
-
-    // 删除
-    function deleteNote(id) {
-      if (!confirm('确定删除吗？')) return;
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      notes = notes.filter(n => n.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      render();
-    }
-
-    // 复制
-    function copyNote(id) {
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      const item = notes.find(n => n.id === id);
-      if (!item) return;
-
-      const text = `${item.title}\n${item.category} · ${item.date}\n\n${item.content}`;
-      navigator.clipboard?.writeText(text).then(
-        () => alert('已复制到剪贴板'),
-        () => { // iOS 兜底
-          const t = document.createElement('textarea'); t.value = text;
-          document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
-          alert('已尝试复制，请检查剪贴板');
+        function render() {
+            const container = document.getElementById('notesContainer');
+            if (notes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-24 text-slate-300">
+                        <i class="fas fa-feather-alt text-4xl mb-4 opacity-20"></i>
+                        <p class="text-sm">空空如也，点右上角开始第一篇吧</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = notes.map(note => `
+                <div class="glass-card p-6 rounded-[2rem] shadow-sm note-card border-l-4 border-indigo-500 relative">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-medium text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full">${note.date}</span>
+                        <button onclick="deleteNote(${note.id})" class="text-slate-200 hover:text-red-400 transition ml-2">
+                            <i class="far fa-trash-alt text-xs"></i>
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-slate-800 mb-2">${note.title}</h3>
+                    <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">${note.content}</p>
+                </div>
+            `).join('');
         }
-      );
-    }
 
-    // 导出
-    document.getElementById('exportBtn').onclick = () => {
-      let notes = [];
-      try { notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { notes = []; }
-      const data = JSON.stringify(notes, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = '时光宝盒备份.json'; a.click();
-      URL.revokeObjectURL(url);
-    };
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value || '未命名记录';
+            const content = document.getElementById('noteContent').value;
+            if (!content.trim()) return;
 
-    // 导入
-    document.getElementById('importBtn').onclick = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'application/json';
-      input.onchange = async () => {
-        const file = input.files[0]; if (!file) return;
-        const text = await file.text();
-        try {
-          const arr = JSON.parse(text);
-          if (Array.isArray(arr)) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+            const newNote = {
+                id: Date.now(),
+                title: title,
+                content: content,
+                date: new Date().toLocaleDateString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' })
+            };
+
+            notes.unshift(newNote);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            closeModal();
             render();
-            alert('导入成功');
-          } else {
-            alert('文件格式不正确');
-          }
-        } catch {
-          alert('解析失败，请确认是导出的 JSON 文件');
         }
-      };
-      input.click();
-    };
 
-    // 注册 Service Worker（项目页用绝对路径）
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/-Gemini-/sw.js')
-          .then(() => console.log('SW registered'))
-          .catch(err => console.log('SW registration failed', err));
-      });
-    }
+        function deleteNote(id) {
+            if (confirm('确定要删除这篇珍贵的记忆吗？')) {
+                notes = notes.filter(n => n.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+                render();
+            }
+        }
 
-    // 启动
-    initData();
-  </script>
+        function exportData() {
+            const dataStr = JSON.stringify(notes, null, 2);
+            document.getElementById('exportArea').value = dataStr;
+            document.getElementById('exportModal').classList.remove('hidden');
+            setTimeout(() => { document.getElementById('exportArea').select(); }, 100);
+        }
+
+        function closeExport() { document.getElementById('exportModal').classList.add('hidden'); }
+        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW失败', err));
+            });
+        }
+        render();
+    </script>
 </body>
 </html>
