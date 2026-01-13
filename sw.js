@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jia-timebox-cache-v14';
+const CACHE_NAME = 'jia-timebox-cache-v15';
 const urlsToCache = [
   './',
   './index.html',
