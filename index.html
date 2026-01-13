@@ -3,174 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- 苹果专用 PWA 设定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="时光宝盒">
-    
-    <!-- 图标路径：请确保仓库中存在 apple-touch-icon.v3.png -->
     <link rel="apple-touch-icon" href="apple-touch-icon.v3.png">
-    <link rel="icon" type="image/png" href="apple-touch-icon.v3.png">
-    
-    <!-- Manifest 配置 -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#6C63FF">
-
-    <title>贾同学的时光宝盒</title>
-
-    <!-- 外部库 -->
+    <title>时光宝盒</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        
-        body {
-            font-family: 'Noto Sans SC', -apple-system, sans-serif;
-            background-color: #f8fafc;
-            -webkit-tap-highlight-color: transparent;
-            padding-top: env(safe-area-inset-top);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .note-card {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #f8fafc; padding-top: env(safe-area-inset-top); }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-24 text-slate-900">
-
-    <!-- 导航栏 -->
-    <header class="sticky top-0 z-50 p-4 glass-card mb-4 shadow-sm">
+<body class="min-h-screen pb-20">
+    <!-- 顶部导航 -->
+    <header class="sticky top-0 z-50 p-4 glass-card shadow-sm">
         <div class="flex justify-between items-center max-w-2xl mx-auto">
-            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
-                时光宝盒 ✨
-            </h1>
-            <div class="flex gap-2">
-                <!-- 导出备份按钮 -->
-                <button onclick="exportData()" class="bg-slate-100 text-slate-500 w-10 h-10 rounded-2xl flex items-center justify-center active:scale-90 transition shadow-inner">
-                    <i class="fas fa-file-export text-sm"></i>
+            <h1 class="text-xl font-bold text-indigo-600">时光宝盒 ✨</h1>
+            <div class="flex gap-3">
+                <!-- 导出按钮：带有导出图标 -->
+                <button onclick="exportData()" class="bg-slate-100 text-slate-500 w-10 h-10 rounded-2xl flex items-center justify-center active:scale-95 transition">
+                    <i class="fas fa-file-export"></i>
                 </button>
-                <!-- 添加笔记按钮 -->
-                <button onclick="openModal()" class="bg-indigo-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition">
+                <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-indigo-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- 主内容区 -->
-    <main class="max-w-2xl mx-auto px-4">
+    <main class="max-w-2xl mx-auto px-4 mt-4">
         <div id="notesContainer" class="space-y-4"></div>
     </main>
 
-    <!-- 新增笔记模态框 -->
-    <div id="modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4">
+    <!-- 添加笔记弹窗 -->
+    <div id="modal" class="fixed inset-0 bg-black/40 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl">
-            <h2 class="text-xl font-bold mb-4 text-slate-800">记录此刻</h2>
-            <input type="text" id="noteTitle" placeholder="给它起个标题..." class="w-full p-4 mb-3 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-indigo-100 transition">
-            <textarea id="noteContent" rows="6" placeholder="你想对未来的自己说什么？" class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-indigo-100 transition"></textarea>
-            <div class="flex gap-3">
-                <button onclick="closeModal()" class="flex-1 py-4 bg-slate-100 rounded-2xl font-bold text-slate-500 active:bg-slate-200 transition">取消</button>
-                <button onclick="saveNote()" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-bold text-white active:bg-indigo-700 shadow-md transition">保存</button>
+            <h2 class="text-xl font-bold mb-4">记录此刻</h2>
+            <input type="text" id="t" placeholder="标题" class="w-full p-4 mb-3 bg-slate-50 rounded-2xl outline-none">
+            <textarea id="c" rows="5" placeholder="此刻的想法..." class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none"></textarea>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('modal').classList.add('hidden')" class="flex-1 py-4 bg-slate-100 rounded-2xl font-bold text-slate-400">取消</button>
+                <button onclick="saveNote()" class="flex-1 py-4 bg-indigo-600 rounded-2xl font-bold text-white">保存</button>
             </div>
         </div>
     </div>
 
-    <!-- 备份导出模态框 -->
-    <div id="exportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[110] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl">
-            <h2 class="text-xl font-bold mb-2 text-slate-800">数据备份</h2>
-            <p class="text-xs text-slate-400 mb-4 px-1">复制下方内容，即可在其他设备恢复。</p>
-            <textarea id="exportArea" readonly class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none text-[10px] font-mono h-48 border border-slate-100"></textarea>
-            <button onclick="closeExport()" class="w-full py-4 bg-indigo-600 rounded-2xl font-bold text-white transition">完成复制</button>
+    <!-- 备份弹窗 -->
+    <div id="exModal" class="fixed inset-0 bg-black/40 hidden z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6">
+            <h2 class="text-xl font-bold mb-2">备份数据</h2>
+            <p class="text-xs text-slate-400 mb-4">全选复制下方内容保存即可</p>
+            <textarea id="exArea" readonly class="w-full p-4 mb-4 bg-slate-50 rounded-2xl outline-none text-[10px] font-mono h-40"></textarea>
+            <button onclick="document.getElementById('exModal').classList.add('hidden')" class="w-full py-4 bg-indigo-600 rounded-2xl font-bold text-white">完成</button>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'jia_notes_v4';
-        let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const KEY = 'jia_notes_v4';
+        let notes = JSON.parse(localStorage.getItem(KEY) || '[]');
 
         function render() {
             const container = document.getElementById('notesContainer');
-            if (notes.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-24 text-slate-300">
-                        <i class="fas fa-feather-alt text-4xl mb-4 opacity-20"></i>
-                        <p class="text-sm">空空如也，点右上角开始第一篇吧</p>
-                    </div>`;
-                return;
-            }
-            container.innerHTML = notes.map(note => `
-                <div class="glass-card p-6 rounded-[2rem] shadow-sm note-card border-l-4 border-indigo-500 relative">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-[10px] font-medium text-indigo-400 bg-indigo-50 px-2 py-0.5 rounded-full">${note.date}</span>
-                        <button onclick="deleteNote(${note.id})" class="text-slate-200 hover:text-red-400 transition ml-2">
-                            <i class="far fa-trash-alt text-xs"></i>
-                        </button>
+            container.innerHTML = notes.length ? notes.map(n => `
+                <div class="glass-card p-6 rounded-[2rem] shadow-sm relative border-l-4 border-indigo-500">
+                    <div class="flex justify-between text-[10px] text-slate-400 mb-2">
+                        <span>${n.date}</span>
+                        <button onclick="del(${n.id})" class="text-slate-300"><i class="far fa-trash-alt"></i></button>
                     </div>
-                    <h3 class="font-bold text-slate-800 mb-2">${note.title}</h3>
-                    <p class="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">${note.content}</p>
+                    <h3 class="font-bold mb-1">${n.title}</h3>
+                    <p class="text-sm text-slate-600 whitespace-pre-wrap">${n.content}</p>
                 </div>
-            `).join('');
+            `).join('') : '<p class="text-center py-20 text-slate-300">还没有记录</p>';
         }
 
         function saveNote() {
-            const title = document.getElementById('noteTitle').value || '未命名记录';
-            const content = document.getElementById('noteContent').value;
-            if (!content.trim()) return;
-
-            const newNote = {
-                id: Date.now(),
-                title: title,
-                content: content,
-                date: new Date().toLocaleDateString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit' })
-            };
-
-            notes.unshift(newNote);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-            document.getElementById('noteTitle').value = '';
-            document.getElementById('noteContent').value = '';
-            closeModal();
+            const title = document.getElementById('t').value || '碎碎念';
+            const content = document.getElementById('c').value;
+            if(!content) return;
+            notes.unshift({ id: Date.now(), title, content, date: new Date().toLocaleDateString() });
+            localStorage.setItem(KEY, JSON.stringify(notes));
+            document.getElementById('t').value = ''; document.getElementById('c').value = '';
+            document.getElementById('modal').classList.add('hidden');
             render();
         }
 
-        function deleteNote(id) {
-            if (confirm('确定要删除这篇珍贵的记忆吗？')) {
-                notes = notes.filter(n => n.id !== id);
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-                render();
-            }
-        }
+        function del(id) { if(confirm('删除吗？')) { notes = notes.filter(n => n.id !== id); localStorage.setItem(KEY, JSON.stringify(notes)); render(); } }
 
         function exportData() {
-            const dataStr = JSON.stringify(notes, null, 2);
-            document.getElementById('exportArea').value = dataStr;
-            document.getElementById('exportModal').classList.remove('hidden');
-            setTimeout(() => { document.getElementById('exportArea').select(); }, 100);
+            document.getElementById('exArea').value = JSON.stringify(notes, null, 2);
+            document.getElementById('exModal').classList.remove('hidden');
         }
 
-        function closeExport() { document.getElementById('exportModal').classList.add('hidden'); }
-        function openModal() { document.getElementById('modal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW失败', err));
-            });
-        }
         render();
     </script>
 </body>
